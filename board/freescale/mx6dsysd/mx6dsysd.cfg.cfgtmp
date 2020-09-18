@@ -1,0 +1,204 @@
+# 1 "board/freescale/mx6dsysd/mx6dsysd.cfg"
+# 1 "<built-in>"
+# 1 "<command-line>"
+# 1 "././include/linux/kconfig.h" 1
+
+
+
+# 1 "include/generated/autoconf.h" 1
+# 5 "././include/linux/kconfig.h" 2
+# 1 "<command-line>" 2
+# 1 "board/freescale/mx6dsysd/mx6dsysd.cfg"
+# 12 "board/freescale/mx6dsysd/mx6dsysd.cfg"
+IMAGE_VERSION 2
+
+
+
+
+
+BOOT_FROM sd
+
+
+# 1 "include/config.h" 1
+
+
+
+
+
+# 1 "include/config_defaults.h" 1
+# 7 "include/config.h" 2
+# 1 "include/config_uncmd_spl.h" 1
+# 8 "include/config.h" 2
+# 1 "include/configs/mx6dsysd.h" 1
+# 12 "include/configs/mx6dsysd.h"
+# 1 "include/configs/imx6_spl.h" 1
+# 13 "include/configs/mx6dsysd.h" 2
+# 21 "include/configs/mx6dsysd.h"
+# 1 "include/configs/mx6_common.h" 1
+# 28 "include/configs/mx6_common.h"
+# 1 "include/linux/sizes.h" 1
+# 29 "include/configs/mx6_common.h" 2
+# 1 "./arch/arm/include/asm/arch/imx-regs.h" 1
+# 421 "./arch/arm/include/asm/arch/imx-regs.h"
+# 1 "./arch/arm/include/asm/mach-imx/regs-lcdif.h" 1
+# 422 "./arch/arm/include/asm/arch/imx-regs.h" 2
+# 30 "include/configs/mx6_common.h" 2
+# 1 "./arch/arm/include/asm/mach-imx/gpio.h" 1
+# 31 "include/configs/mx6_common.h" 2
+# 22 "include/configs/mx6dsysd.h" 2
+# 9 "include/config.h" 2
+# 1 "./arch/arm/include/asm/config.h" 1
+# 10 "include/config.h" 2
+# 1 "include/linux/kconfig.h" 1
+# 11 "include/config.h" 2
+# 1 "include/config_fallbacks.h" 1
+# 11 "include/config.h" 2
+# 22 "board/freescale/mx6dsysd/mx6dsysd.cfg" 2
+
+
+
+# 1 "./arch/arm/include/asm/arch/mx6-ddr.h" 1
+# 14 "./arch/arm/include/asm/arch/mx6-ddr.h"
+# 1 "./arch/arm/include/asm/arch/mx6dl-ddr.h" 1
+# 15 "./arch/arm/include/asm/arch/mx6-ddr.h" 2
+# 26 "board/freescale/mx6dsysd/mx6dsysd.cfg" 2
+# 1 "./arch/arm/include/asm/arch/iomux.h" 1
+# 27 "board/freescale/mx6dsysd/mx6dsysd.cfg" 2
+# 1 "./arch/arm/include/asm/arch/crm_regs.h" 1
+# 28 "board/freescale/mx6dsysd/mx6dsysd.cfg" 2
+
+# 1 "board/freescale/mx6dsysd/ddr-setup.cfg" 1
+# 25 "board/freescale/mx6dsysd/ddr-setup.cfg"
+DATA 4, 0x020e04bc, 0x00000030
+DATA 4, 0x020e04c0, 0x00000030
+DATA 4, 0x020e04c4, 0x00000030
+DATA 4, 0x020e04c8, 0x00000030
+DATA 4, 0x020e04cc, 0x00000030
+DATA 4, 0x020e04d0, 0x00000030
+DATA 4, 0x020e04d4, 0x00000030
+DATA 4, 0x020e04d8, 0x00000030
+
+DATA 4, 0x020e0764, 0x00000030
+DATA 4, 0x020e0770, 0x00000030
+DATA 4, 0x020e0778, 0x00000030
+DATA 4, 0x020e077c, 0x00000030
+DATA 4, 0x020e0780, 0x00000030
+DATA 4, 0x020e0784, 0x00000030
+DATA 4, 0x020e078c, 0x00000030
+DATA 4, 0x020e0748, 0x00000030
+DATA 4, 0x020e074c, 0x00000030
+
+DATA 4, 0x020e076c, 0x00000030
+
+DATA 4, 0x020e0470, 0x00020030
+DATA 4, 0x020e0474, 0x00020030
+DATA 4, 0x020e0478, 0x00020030
+DATA 4, 0x020e047c, 0x00020030
+DATA 4, 0x020e0480, 0x00020030
+DATA 4, 0x020e0484, 0x00020030
+DATA 4, 0x020e0488, 0x00020030
+DATA 4, 0x020e048c, 0x00020030
+
+DATA 4, 0x020e0464, 0x00020030
+DATA 4, 0x020e0490, 0x00020030
+DATA 4, 0x020e04ac, 0x00020030
+DATA 4, 0x020e04b0, 0x00020030
+
+DATA 4, 0x020e0494, 0x00020030
+DATA 4, 0x020e04a4, 0x00003000
+DATA 4, 0x020e04a8, 0x00003000
+
+DATA 4, 0x020e04b4, 0x00003030
+DATA 4, 0x020e04b8, 0x00003030
+
+
+DATA 4, 0x020e0750, 0x00020000
+
+DATA 4, 0x020e0760, 0x00020000
+
+DATA 4, 0x020e0754, 0x00000000
+DATA 4, 0x020e04a0, 0x00000000
+
+DATA 4, 0x020e0774, 0x000C0000
+
+
+DATA 4, 0x021b081c, 0x33333333
+DATA 4, 0x021b0820, 0x33333333
+DATA 4, 0x021b0824, 0x33333333
+DATA 4, 0x021b0828, 0x33333333
+DATA 4, 0x021b481c, 0x33333333
+DATA 4, 0x021b4820, 0x33333333
+DATA 4, 0x021b4824, 0x33333333
+DATA 4, 0x021b4828, 0x33333333
+
+
+
+
+DATA 4, 0x021b0018, 0x00081740
+
+
+
+
+DATA 4, 0x021b001c, 0x00008000
+# 30 "board/freescale/mx6dsysd/mx6dsysd.cfg" 2
+# 1 "board/freescale/mx6dsysd/800mhz_4x128mx16.cfg" 1
+
+
+
+
+
+DATA 4, 0x021b0004, 0x0002002D
+DATA 4, 0x021b000c, 0x40435323
+DATA 4, 0x021b0010, 0xB66E8D63
+DATA 4, 0x021b0014, 0x01FF00DB
+DATA 4, 0x021b002c, 0x000026D2
+DATA 4, 0x021b0030, 0x00431023
+DATA 4, 0x021b0008, 0x00333030
+DATA 4, 0x021b0004, 0x0002556D
+DATA 4, 0x021b0040, 0x00000027
+DATA 4, 0x021b0000, 0x831A0000
+DATA 4, 0x021b001c, 0x04008032
+DATA 4, 0x021b001c, 0x00008033
+DATA 4, 0x021b001c, 0x00048031
+DATA 4, 0x021b001c, 0x13208030
+DATA 4, 0x021b001c, 0x04008040
+DATA 4, 0x021b0800, 0xA1390003
+DATA 4, 0x021b4800, 0xA1390003
+DATA 4, 0x021b0020, 0x00005800
+DATA 4, 0x021b0818, 0x00022227
+DATA 4, 0x021b4818, 0x00022227
+DATA 4, 0x021b083c, 0x420F020F
+DATA 4, 0x021b0840, 0x01760175
+DATA 4, 0x021b483c, 0x41640171
+DATA 4, 0x021b4840, 0x015E0160
+DATA 4, 0x021b0848, 0x45464B4A
+DATA 4, 0x021b4848, 0x49484A46
+DATA 4, 0x021b0850, 0x40402E32
+DATA 4, 0x021b4850, 0x3A3A3231
+DATA 4, 0x021b080c, 0x003A003A
+DATA 4, 0x021b0810, 0x0030002F
+DATA 4, 0x021b480c, 0x002F0038
+DATA 4, 0x021b4810, 0x00270039
+DATA 4, 0x021b08b8, 0x00000800
+DATA 4, 0x021b48b8, 0x00000800
+DATA 4, 0x021b001c, 0x00000000
+DATA 4, 0x021b0404, 0x00011006
+# 31 "board/freescale/mx6dsysd/mx6dsysd.cfg" 2
+# 1 "board/freescale/mx6dsysd/clocks.cfg" 1
+# 17 "board/freescale/mx6dsysd/clocks.cfg"
+DATA 4, 0x020C4068, 0x00C03F3F
+DATA 4, 0x020C406c, 0x0030FC03
+DATA 4, 0x020C4070, 0x0FFFC000
+DATA 4, 0x020C4074, 0x3FF00000
+DATA 4, 0x020C4078, 0x00FFF300
+DATA 4, 0x020C407c, 0x0F0000C3
+DATA 4, 0x020C4080, 0x000003FF
+
+
+DATA 4, 0x020e0010, 0xF00000CF
+
+DATA 4, 0x020e0018, 0x007F007F
+DATA 4, 0x020e001c, 0x007F007F
+# 40 "board/freescale/mx6dsysd/clocks.cfg"
+DATA 4, 0x020c4060, 0x000000fb
+# 31 "board/freescale/mx6dsysd/mx6dsysd.cfg" 2
