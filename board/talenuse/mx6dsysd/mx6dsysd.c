@@ -28,13 +28,9 @@
 #include <input.h>
 #include <power/pmic.h>
 #include <power/pfuze100_pmic.h>
-#include "../common/pfuze.h"
+//#include "../common/pfuze.h"
 #include <usb.h>
 #include <usb/ehci-ci.h>
-#include <malloc.h>
-#include <micrel.h>
-
-
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -66,13 +62,21 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define LVDS_PWR_EN   IMX_GPIO_NR(1,9)
 
-#define RGB_PWR_EN  IMX_GPIO_NR(4,15)
+//#define RGB_PWR_EN  IMX_GPIO_NR(4,15)
 
-#define KEY_VOL_UP	IMX_GPIO_NR(1, 4)
+#define KEY_VOL_UP   IMX_GPIO_NR(4, 15)
 
 #define RELAY_CTL  IMX_GPIO_NR(6,5)
 
 #define USER_LED  IMX_GPIO_NR(1,2)
+
+#define SY6014_PD IMX_GPIO_NR(1,7)
+
+#define Switch_PW IMX_GPIO_NR(1, 5)
+
+#define USB_HC_PWR IMX_GPIO_NR(3, 31)
+
+#define GPIO_ENET_PHY_RESET IMX_GPIO_NR(4, 14)
 
 int dram_init(void)
 {
@@ -103,24 +107,28 @@ static iomux_v3_cfg_t const enet_pads[] = {
 	IOMUX_PADS(PAD_CSI0_DAT19__GPIO6_IO05 | MUX_PAD_CTRL(NO_PAD_CTRL)),
 };
 
+static int reset_enet_phy(struct mii_dev *bus)
+{
+	/* Reset KSZ8873 PHY */
+	gpio_request(GPIO_ENET_PHY_RESET, "ETH_RESET#");
+	gpio_direction_output(GPIO_ENET_PHY_RESET, 0);
+	mdelay(10);
+	gpio_set_value(GPIO_ENET_PHY_RESET, 1);
+
+	return 0;
+}
+
 static void setup_iomux_enet(void)
 {
 	SETUP_IOMUX_PADS(enet_pads);
 
-	/* Reset AR8031 PHY */
-
+	gpio_request(RELAY_CTL, "open loop tx-rx relay Enable");
 
 	gpio_direction_output(RELAY_CTL, 1);   /* Control the loop relay*/
 
+	gpio_request(Switch_PW, "Switch Power Up");
 
-    gpio_direction_output(IMX_GPIO_NR(1, 5) , 1);  /* release the Powerdown PIN*/
-    /* Reset KSZ8873 switch */
-	gpio_direction_output(IMX_GPIO_NR(4, 14) , 0);
-//	gpio_direction_output(IMX_GPIO_NR(1, 5) , 0);
-	mdelay(10);
-//	gpio_direction_output(IMX_GPIO_NR(1, 5) , 1);
-	gpio_set_value(IMX_GPIO_NR(4, 14), 1);
-	udelay(100);
+    	gpio_direction_output(Switch_PW, 1);  /* release the Powerdown PIN*/
 }
 
 static iomux_v3_cfg_t const usdhc2_pads[] = {
@@ -209,6 +217,8 @@ static iomux_v3_cfg_t const bl_pads[] = {
 static void enable_backlight(void)
 {
 	SETUP_IOMUX_PADS(bl_pads);
+	gpio_request(DISP0_PWR_EN, "Display Power Enable");
+	gpio_request(DISP1_PWR_EN, "Display Power Enable");
 	gpio_direction_output(DISP0_PWR_EN, 1);
 	gpio_direction_output(DISP1_PWR_EN, 1);
 }
@@ -216,7 +226,6 @@ static void enable_backlight(void)
 static void enable_rgb(struct display_info_t const *dev)
 {
 	SETUP_IOMUX_PADS(rgb_pads);
-	gpio_direction_output(RGB_PWR_EN, 1);
 	enable_backlight();
 }
 
@@ -227,18 +236,7 @@ static void enable_lvds(struct display_info_t const *dev)
 	u32 reg = readl(&iomux->gpr[2]);
 	reg |= IOMUXC_GPR2_DATA_WIDTH_CH0_24BIT;
 	writel(reg, &iomux->gpr[2]);
-	gpio_direction_output(LVDS_PWR_EN, 1);
-	enable_backlight();
-}
-
-static void enable_lvds_jeida(struct display_info_t const *dev)
-{
-	struct iomuxc *iomux = (struct iomuxc *)
-				IOMUXC_BASE_ADDR;
-	u32 reg = readl(&iomux->gpr[2]);
-	reg |= IOMUXC_GPR2_DATA_WIDTH_CH0_24BIT
-	     |IOMUXC_GPR2_BIT_MAPPING_CH0_JEIDA;
-	writel(reg, &iomux->gpr[2]);
+	gpio_request(LVDS_PWR_EN, "LVDS Power Enable");
 	gpio_direction_output(LVDS_PWR_EN, 1);
 	enable_backlight();
 }
@@ -273,21 +271,17 @@ static void setup_spi(void)
 {
 	SETUP_IOMUX_PADS(ecspi1_pads);
 }
-
-#if 0
+#if 1
 iomux_v3_cfg_t const pcie_pads[] = {
 	IOMUX_PADS(PAD_EIM_D19__GPIO3_IO19 | MUX_PAD_CTRL(NO_PAD_CTRL)),	/* POWER */
 	IOMUX_PADS(PAD_GPIO_17__GPIO7_IO12 | MUX_PAD_CTRL(NO_PAD_CTRL)),	/* RESET */
 };
 
-
 static void setup_pcie(void)
 {
 	SETUP_IOMUX_PADS(pcie_pads);
 }
-
 #endif
-
 iomux_v3_cfg_t const di0_pads[] = {
 	IOMUX_PADS(PAD_DI0_DISP_CLK__IPU1_DI0_DISP_CLK),	/* DISP0_CLK */
 	IOMUX_PADS(PAD_DI0_PIN2__IPU1_DI0_PIN02),		/* DISP0_HSYNC */
@@ -336,47 +330,6 @@ int board_mmc_getcd(struct mmc *mmc)
 
 int board_mmc_init(bd_t *bis)
 {
-#ifndef CONFIG_SPL_BUILD
-	int ret;
-	int i;
-
-	/*
-	 * According to the board_mmc_init() the following map is done:
-	 * (U-Boot device node)    (Physical Port)
-	 * mmc0                    SD2
-	 * mmc1                    SD3
-	 * mmc2                    eMMC
-	 */
-	for (i = 0; i < CONFIG_SYS_FSL_USDHC_NUM; i++) {
-		switch (i) {
-		case 0:
-			SETUP_IOMUX_PADS(usdhc2_pads);
-			gpio_direction_input(USDHC2_CD_GPIO);
-			usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC2_CLK);
-			break;
-		case 1:
-			SETUP_IOMUX_PADS(usdhc3_pads);
-			gpio_direction_input(USDHC3_CD_GPIO);
-			usdhc_cfg[1].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
-			break;
-		case 2:
-			SETUP_IOMUX_PADS(usdhc4_pads);
-			usdhc_cfg[2].sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
-			break;
-		default:
-			printf("Warning: you configured more USDHC controllers"
-			       "(%d) then supported by the board (%d)\n",
-			       i + 1, CONFIG_SYS_FSL_USDHC_NUM);
-			return -EINVAL;
-		}
-
-		ret = fsl_esdhc_initialize(bis, &usdhc_cfg[i]);
-		if (ret)
-			return ret;
-	}
-
-	return 0;
-#else
 	struct src *psrc = (struct src *)SRC_BASE_ADDR;
 	unsigned reg = readl(&psrc->sbmr1) >> 11;
 	/*
@@ -410,7 +363,6 @@ int board_mmc_init(bd_t *bis)
 	}
 
 	return fsl_esdhc_initialize(bis, &usdhc_cfg[0]);
-#endif
 }
 #endif
 
@@ -441,7 +393,6 @@ static int ar8031_phy_fixup(struct phy_device *phydev)
 int board_phy_config(struct phy_device *phydev)
 {
 	ar8031_phy_fixup(phydev);
-	
 
 	if (phydev->drv->config)
 		phydev->drv->config(phydev);
@@ -475,11 +426,13 @@ int board_eth_init(bd_t *bis)
 	clrbits_le32(&iomuxc_regs->gpr[1], IOMUXC_GPR1_ENET_CLK_SEL_MASK);
 
 	setup_iomux_enet();
+	setup_pcie();
 
 #ifdef CONFIG_FEC_MXC
 	bus = fec_get_miibus(base, -1);
 	if (!bus)
 		return 0;
+	bus->reset = reset_enet_phy;
 	/* scan PHY 1..7 */
 	phydev = phy_find_by_mask(bus, 0xff, PHY_INTERFACE_MODE_RMII);
 	if (!phydev) {
@@ -487,7 +440,7 @@ int board_eth_init(bd_t *bis)
 		puts("no PHY found\n");
 		return 0;
 	}
-	phy_reset(phydev);
+//	phy_reset(phydev);
 	printf("using PHY at %d\n", phydev->addr);
 	ret = fec_probe(bis, -1, base, bus, phydev);
 	if (ret) {
@@ -496,7 +449,7 @@ int board_eth_init(bd_t *bis)
 		free(bus);
 	}
 #endif
-	return 0;
+	return cpu_eth_init(bis);
 }
 
 #if defined(CONFIG_VIDEO_IPUV3)
@@ -510,8 +463,6 @@ static void disable_lvds(struct display_info_t const *dev)
 		 IOMUXC_GPR2_LVDS_CH1_MODE_MASK);
 
 	writel(reg, &iomux->gpr[2]);
-
-
 }
 
 static void do_enable_hdmi(struct display_info_t const *dev)
@@ -529,10 +480,10 @@ struct display_info_t const displays[] = {{
 	.enable	= enable_lvds,
 	.mode	= {
 		.name           = "Hannstar-XGA",
-		.refresh        = 60,
+		.refresh        = 30,
 		.xres           = 1920,
 		.yres           = 1080,
-		.pixclock       = 7782,
+		.pixclock       = 13310,
 		.left_margin    = 220,
 		.right_margin   = 40,
 		.upper_margin   = 21,
@@ -541,14 +492,14 @@ struct display_info_t const displays[] = {{
 		.vsync_len      = 10,
 		.sync           = FB_SYNC_EXT,
 		.vmode          = FB_VMODE_NONINTERLACED
-} }, /*{
+} }, {
 	.bus	= -1,
 	.addr	= 0,
 	.pixfmt	= IPU_PIX_FMT_RGB24,
 	.detect	= detect_hdmi,
 	.enable	= do_enable_hdmi,
 	.mode	= {
-		.name           = "HDMI-1080P",
+		.name           = "HDMI",
 		.refresh        = 60,
 		.xres           = 1920,
 		.yres           = 1080,
@@ -561,26 +512,6 @@ struct display_info_t const displays[] = {{
 		.vsync_len      = 10,
 		.sync           = FB_SYNC_EXT,
 		.vmode          = FB_VMODE_NONINTERLACED
-	} },*/ {
-		.bus	= -1,
-		.addr	= 0,
-		.pixfmt	= IPU_PIX_FMT_RGB24,
-		.detect	= detect_hdmi,
-		.enable	= do_enable_hdmi,
-		.mode	= {
-			.name           = "HDMI",
-			.refresh        = 60,
-			.xres           = 800,
-			.yres           = 480,
-			.pixclock       = 29850,
-			.left_margin    = 89,
-			.right_margin   = 164,
-			.upper_margin   = 23,
-			.lower_margin   = 10,
-			.hsync_len      = 10,
-			.vsync_len      = 10,
-			.sync           = FB_SYNC_EXT,
-			.vmode          = FB_VMODE_NONINTERLACED
 } }, {
 	.bus	= 0,
 	.addr	= 0,
@@ -670,7 +601,15 @@ int overwrite_console(void)
 {
 	return 1;
 }
+/*
+int board_eth_init(bd_t *bis)
+{
+	setup_iomux_enet();
+	setup_pcie();
 
+	return cpu_eth_init(bis);
+}
+*/
 #ifdef CONFIG_USB_EHCI_MX6
 #define USB_OTHERREGS_OFFSET	0x800
 #define UCTRL_PWR_POL		(1 << 9)
@@ -719,9 +658,15 @@ int board_ehci_power(int port, int on)
 		break;
 	case 1:
 		if (on)
-			gpio_direction_output(IMX_GPIO_NR(3, 31), 1);
+			{
+				gpio_request(USB_HC_PWR, "USB HC POWER CONTROL");
+				gpio_direction_output(USB_HC_PWR, 1);
+			}	
 		else
-			gpio_direction_output(IMX_GPIO_NR(3, 31), 0);
+			{
+				gpio_request(USB_HC_PWR, "USB HC POWER CONTROL");
+				gpio_direction_output(USB_HC_PWR, 0);
+			}
 		break;
 	default:
 		printf("MXC USB port %d not yet supported\n", port);
@@ -757,8 +702,10 @@ int board_init(void)
 #ifdef CONFIG_USB_EHCI_MX6
 	setup_usb();
 #endif
-
+	gpio_request(USER_LED, "USER LED RED");	
 	gpio_direction_output(USER_LED, 0);
+	gpio_request(SY6014_PD, "AUDIO AMPLIFY POWER CONTROL");	
+	gpio_direction_output(SY6014_PD,0);
 
 	return 0;
 }
@@ -777,13 +724,13 @@ int power_init_board(void)
 	if (ret < 0)
 		return ret;
 
-	//Increase VGEN3 from 2.5 to 2.8V 
+	/* Increase VGEN3 from 2.5 to 2.8V */
 	pmic_reg_read(p, PFUZE100_VGEN3VOL, &reg);
 	reg &= ~LDO_VOL_MASK;
 	reg |= LDOB_2_80V;
 	pmic_reg_write(p, PFUZE100_VGEN3VOL, reg);
 
-	//Increase VGEN5 from 2.8 to 3V 
+	/* Increase VGEN5 from 2.8 to 3V */
 	pmic_reg_read(p, PFUZE100_VGEN5VOL, &reg);
 	reg &= ~LDO_VOL_MASK;
 	reg |= LDOB_3_00V;
@@ -792,7 +739,6 @@ int power_init_board(void)
 	return 0;
 }
 #endif
-
 #ifdef CONFIG_MXC_SPI
 int board_spi_cs_gpio(unsigned bus, unsigned cs)
 {
@@ -845,6 +791,7 @@ int checkboard(void)
 #ifdef CONFIG_SPL_OS_BOOT
 int spl_start_uboot(void)
 {
+	gpio_request(KEY_VOL_UP, "KEY Volume UP");
 	gpio_direction_input(KEY_VOL_UP);
 
 	/* Only enter in Falcon mode if KEY_VOL_UP is pressed */
@@ -1047,7 +994,6 @@ static int mx6qp_dcd_table[] = {
 	0x021b001c, 0x00000000,
 };
 
-
 static int mx6dl_dcd_table[] = {
 	0x020e0774, 0x000C0000,
 	0x020e0754, 0x00000000,
@@ -1134,7 +1080,6 @@ static int mx6dl_dcd_table[] = {
 	0x021b001c, 0x00000000,
 };
 
-
 static void ddr_init(int *table, int size)
 {
 	int i;
@@ -1178,6 +1123,23 @@ void board_init_f(ulong dummy)
 
 	/* load/boot image from boot device */
 	board_init_r(NULL, 0);
+}
+#endif
 
+#ifdef CONFIG_SPL_LOAD_FIT
+int board_fit_config_name_match(const char *name)
+{
+	if (is_mx6dq()) {
+		if (!strcmp(name, "mx6qsysd"))
+			return 0;
+	} else if (is_mx6dqp()) {
+		if (!strcmp(name, "mx6qpsysd"))
+			return 0;
+	} else if (is_mx6dl()) {
+		if (!strcmp(name, "mx6dsysd"))
+			return 0;
+	}
+
+	return -1;
 }
 #endif

@@ -538,7 +538,8 @@ dtb-$(CONFIG_MX6QDL) += \
 	imx6dl-sabreauto.dtb \
 	imx6dl-sabresd.dtb \
 	imx6qp-sabreauto.dtb \
-	imx6qp-sabresd.dtb
+	imx6qp-sabresd.dtb \
+	mx6dsysd.dtb
 
 dtb-$(CONFIG_MX6SL) += imx6sl-evk.dtb
 

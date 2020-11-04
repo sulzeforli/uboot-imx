@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 /*
- * Copyright (C) 2012 Freescale Semiconductor, Inc.
+ * Copyright (C) 2018 Simone CIANNI <simone.cianni@bticino.it>
+ * Copyright (C) 2018 Raffaele RECALCATI <raffaele.recalcati@bticino.it>
+ * Copyright (C) 2018 Jagan Teki <jagan@amarulasolutions.com>
  *
- * Configuration settings for the Freescale i.MX6Q SabreSD board.
+ * Configuration settings for the BTicion i.MX6DL Mamoj board.
  */
 
 #ifndef __MX6DSYSD_CONFIG_H
@@ -16,50 +18,32 @@
 #define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONSOLE_DEV		"ttymxc0"
 
-#define CONFIG_SUPPORT_EMMC_BOOT /* eMMC specific */
-
 #include "mx6_common.h"
 
 #define CONFIG_IMX_THERMAL
 
 /* Size of malloc() pool */
-#define CONFIG_SYS_MALLOC_LEN		(10 * SZ_1M)
+#define CONFIG_SYS_MALLOC_LEN		(35 * SZ_1M)
 
 #define CONFIG_MXC_UART
 
 /* MMC Configs */
 #define CONFIG_SYS_FSL_ESDHC_ADDR      0
 
-/* Network */
 #define CONFIG_FEC_MXC
-#define CONFIG_MII
 #define IMX_FEC_BASE			ENET_BASE_ADDR
 #define CONFIG_FEC_XCV_TYPE		RMII
+#ifdef CONFIG_DM_ETH
+#define CONFIG_ETHPRIME			"eth0"
+#else
 #define CONFIG_ETHPRIME			"FEC"
+#endif
 #define CONFIG_FEC_MXC_PHYADDR		1
 
-#if 0
-#define CONFIG_PHYLIB
-
-#define CONFIG_PHY_MICREL
-#endif
-
-#define CONFIG_IP_DEFRAG
-#define CONFIG_TFTP_BLOCKSIZE		16352
-#define CONFIG_TFTP_TSIZE
-
-
-
-#ifdef CONFIG_CMD_SF
-#define CONFIG_SF_DEFAULT_BUS		0
-#define CONFIG_SF_DEFAULT_CS		0
-#define CONFIG_SF_DEFAULT_SPEED		20000000
-#define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
-#endif
 
 #ifdef CONFIG_SUPPORT_EMMC_BOOT
 #define EMMC_ENV \
-	"emmcdev=0\0" \
+	"emmcdev=2\0" \
 	"update_emmc_firmware=" \
 		"if test ${ip_dyn} = yes; then " \
 			"setenv get_cmd dhcp; " \
@@ -76,6 +60,16 @@
 #else
 #define EMMC_ENV ""
 #endif
+
+#define VIDEO_ARGS        "${video_args}"
+#define VIDEO_ARGS_SCRIPT "run video_args_script; "
+
+#define CONFIG_PREBOOT \
+	"if hdmidet; then " \
+		"setenv video_interfaces hdmi lvds; " \
+	"else " \
+		"setenv video_interfaces lvds hdmi; " \
+	"fi;"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"script=boot.scr\0" \
@@ -108,8 +102,21 @@
 			"fi; "	\
 		"fi\0" \
 	EMMC_ENV	  \
+	"video_args_hdmi=setenv video_args $video_args " \
+		"video=mxcfb${fb}:dev=hdmi,1280x720M@60,if=RGB24\0" \
+	"video_args_lvds=setenv video_args $video_args " \
+		"video=mxcfb${fb}:dev=ldb,LDB-XGA,if=RGB666\0" \
+	"video_args_lcd=setenv video_args $video_args " \
+		"video=mxcfb${fb}:dev=lcd,CLAA-WVGA,if=RGB666\0" \
+	"fb=0\0" \
+	"video_args_script=" \
+		"for v in ${video_interfaces}; do " \
+			"run video_args_${v}; " \
+			"setexpr fb $fb + 1; " \
+		"done\0" \
 	"mmcargs=setenv bootargs console=${console},${baudrate} " \
-		"root=PARTUUID=${uuid} rootwait rw\0" \
+		"root=PARTUUID=${uuid} rootwait rw " \
+		VIDEO_ARGS "\0" \
 	"loadbootscript=" \
 		"fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
@@ -118,6 +125,7 @@
 	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
 	"mmcboot=echo Booting from mmc ...; " \
 		"run finduuid; " \
+		VIDEO_ARGS_SCRIPT \
 		"run mmcargs; " \
 		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
 			"if run loadfdt; then " \
@@ -167,9 +175,9 @@
 				"if test $board_name = SABRESD && test $board_rev = MX6QP; then " \
 					"setenv fdt_file imx6qp-sabresd.dtb; fi; " \
 				"if test $board_name = SABRESD && test $board_rev = MX6Q; then " \
-					"setenv fdt_file imx6q-sabresd.dtb; fi; " \
+					"setenv fdt_file imx6q-sabresd-ldo.dtb; fi; " \
 				"if test $board_name = SABRESD && test $board_rev = MX6DL; then " \
-					"setenv fdt_file imx6dl-sabresd.dtb; fi; " \
+					"setenv fdt_file imx6dl-sabresd-ldo.dtb; fi; " \
 				"if test $board_name = MX6DSYSD && test $board_rev = MX6DL; then " \
 					"setenv fdt_file mx6dsysd.dtb; fi; " \
 				"if test $fdt_file = undefined; then " \
@@ -197,7 +205,6 @@
 #define CONFIG_SYS_MEMTEST_SCRATCH     0x10800000
 
 /* Physical Memory Map */
-#define CONFIG_NR_DRAM_BANKS           1
 #define PHYS_SDRAM                     MMDC0_ARB_BASE_ADDR
 
 #define CONFIG_SYS_SDRAM_BASE          PHYS_SDRAM
@@ -217,7 +224,6 @@
 #endif
 
 /* Framebuffer */
-#define CONFIG_VIDEO_IPUV3
 #define CONFIG_VIDEO_BMP_RLE8
 #define CONFIG_SPLASH_SCREEN
 #define CONFIG_SPLASH_SCREEN_ALIGN
@@ -230,10 +236,6 @@
 /* Client */
 #define CONFIG_USBD_HS
 
-#define CONFIG_USB_GADGET_MASS_STORAGE
-
-/* USB DFU */
-#define CONFIG_DFU_MMC
 
 /* Falcon Mode */
 #define CONFIG_SPL_FS_LOAD_ARGS_NAME	"args"
@@ -249,14 +251,14 @@
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_SYS_MMC_ENV_DEV		2	/* SDHC4 */
 #endif
-
+#if 1
 #ifdef CONFIG_CMD_PCI
 #define CONFIG_PCI_SCAN_SHOW
 #define CONFIG_PCIE_IMX
 #define CONFIG_PCIE_IMX_PERST_GPIO	IMX_GPIO_NR(7, 12)
 #define CONFIG_PCIE_IMX_POWER_GPIO	IMX_GPIO_NR(3, 19)
 #endif
-
+#endif
 /* I2C Configs */
 #define CONFIG_SYS_I2C
 #define CONFIG_SYS_I2C_MXC
@@ -265,22 +267,14 @@
 #define CONFIG_SYS_I2C_MXC_I2C3		/* enable I2C bus 3 */
 #define CONFIG_SYS_I2C_SPEED		  100000
 
-/* RTC PCF8563 Configs */
-#define CONFIG_RTC_PCF8563
-#define CONFIG_SYS_I2C_RTC_ADDR 0x51 
-#define CONFIG_CMD_DATE
-#define CONFIG_SYS_RTC_BUS_NUM 1
-
-/* PMIC */
-#undef CONFIG_LDO_BYPASS_CHECK   /*PJ*/
-
 #if 0
+/* PMIC */
 #define CONFIG_POWER
 #define CONFIG_POWER_I2C
 #define CONFIG_POWER_PFUZE100
 #define CONFIG_POWER_PFUZE100_I2C_ADDR	0x08
 #endif
-
+#undef CONFIG_LDO_BYPASS_CHECK   /*PJ*/
 
 /* USB Configs */
 #ifdef CONFIG_CMD_USB
@@ -290,20 +284,21 @@
 #define CONFIG_USB_MAX_CONTROLLER_COUNT	2 /* Enabled USB controller number */
 #endif
 
+#if 0
+/* RTC PCF8563 Configs */
+#define CONFIG_RTC_PCF8563
+#define CONFIG_SYS_I2C_RTC_ADDR 0x51 
+#define CONFIG_CMD_DATE
+#define CONFIG_SYS_RTC_BUS_NUM 1
+#endif
+
 #undef CONFIG_IPADDR
-#define CONFIG_IPADDR			192.168.10.2
+#define CONFIG_IPADDR			192.168.11.2
 #define CONFIG_NETMASK			255.255.255.0
 #undef CONFIG_SERVERIP
-#define CONFIG_SERVERIP			192.168.10.1
-
-#if 0
-#define CONFIG_USB_EHCI
-#define CONFIG_G_DNL_MANUFACTURER	"Freescale"
-#define CONFIG_G_DNL_VENDOR_NUM		0x18d1
-#define CONFIG_G_DNL_PRODUCT_NUM	0x0d02
-#endif
+#define CONFIG_SERVERIP			192.168.11.1
 
 #define CONFIG_CMD_GPT
 
 
-#endif                         /* __MX6SABRESD_CONFIG_H */
+#endif  /* __MX6SABRESD_CONFIG_H */

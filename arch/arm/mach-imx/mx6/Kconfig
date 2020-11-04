@@ -364,19 +364,21 @@ config TARGET_MX6SABRESD
 	select DM
 	select DM_THERMAL
 	select MX6QDL
+	select MX6DL
 	select SUPPORT_SPL
 	imply CMD_DM
 
 config TARGET_MX6DSYSD
-	bool "mx6dsysd"
-	select MX6QDL
-	select MX6DL
+	bool "Support Talenuse imx6dl"
+	select BOARD_EARLY_INIT_F
 	select BOARD_LATE_INIT
 	select SUPPORT_SPL
 	select PINCTRL
 	select DM
 	select DM_THERMAL
-	select BOARD_EARLY_INIT_F
+	select DM_SERIAL
+	select MX6QDL
+	imply CMD_DM
 
 config TARGET_MX6QSABREAUTO
     bool "mx6qsabreauto"
@@ -731,7 +733,6 @@ source "board/freescale/mx6qarm2/Kconfig"
 source "board/freescale/mx6memcal/Kconfig"
 source "board/freescale/mx6sabreauto/Kconfig"
 source "board/freescale/mx6sabresd/Kconfig"
-source "board/freescale/mx6dsysd/Kconfig"
 source "board/freescale/mx6slevk/Kconfig"
 source "board/freescale/mx6sll_arm2/Kconfig"
 source "board/freescale/mx6sllevk/Kconfig"
@@ -768,5 +769,6 @@ source "board/udoo/Kconfig"
 source "board/udoo/neo/Kconfig"
 source "board/wandboard/Kconfig"
 source "board/warp/Kconfig"
+source "board/talenuse/mx6dsysd/Kconfig"
 
 endif
