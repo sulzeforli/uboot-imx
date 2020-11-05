@@ -109,6 +109,7 @@ static iomux_v3_cfg_t const enet_pads[] = {
 
 static int reset_enet_phy(struct mii_dev *bus)
 {
+
 	/* Reset KSZ8873 PHY */
 	gpio_request(GPIO_ENET_PHY_RESET, "ETH_RESET#");
 	gpio_direction_output(GPIO_ENET_PHY_RESET, 0);
@@ -120,8 +121,13 @@ static int reset_enet_phy(struct mii_dev *bus)
 
 static void setup_iomux_enet(void)
 {
+	struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
+//	struct iomuxc *iomuxc_regs = (struct iomuxc *)IOMUXC_BASE_ADDR;
+	
 	SETUP_IOMUX_PADS(enet_pads);
 
+//	clrbits_le32(&iomuxc_regs->gpr[1], IOMUXC_GPR1_ENET_CLK_SEL_MASK);
+	clrbits_le32(&iomux->gpr[1], IOMUXC_GPR1_ENET_CLK_SEL_MASK);
 	gpio_request(RELAY_CTL, "open loop tx-rx relay Enable");
 
 	gpio_direction_output(RELAY_CTL, 1);   /* Control the loop relay*/
@@ -129,6 +135,7 @@ static void setup_iomux_enet(void)
 	gpio_request(Switch_PW, "Switch Power Up");
 
     	gpio_direction_output(Switch_PW, 1);  /* release the Powerdown PIN*/
+
 }
 
 static iomux_v3_cfg_t const usdhc2_pads[] = {
@@ -449,7 +456,7 @@ int board_eth_init(bd_t *bis)
 		free(bus);
 	}
 #endif
-	return cpu_eth_init(bis);
+	return 0;
 }
 
 #if defined(CONFIG_VIDEO_IPUV3)
@@ -680,6 +687,7 @@ int board_ehci_power(int port, int on)
 int board_early_init_f(void)
 {
 	setup_iomux_uart();
+	setup_iomux_enet();
 
 	return 0;
 }

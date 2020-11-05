@@ -364,7 +364,6 @@ config TARGET_MX6SABRESD
 	select DM
 	select DM_THERMAL
 	select MX6QDL
-	select MX6DL
 	select SUPPORT_SPL
 	imply CMD_DM
 
@@ -378,6 +377,7 @@ config TARGET_MX6DSYSD
 	select DM_THERMAL
 	select DM_SERIAL
 	select MX6QDL
+	select MX6DL
 	imply CMD_DM
 
 config TARGET_MX6QSABREAUTO
