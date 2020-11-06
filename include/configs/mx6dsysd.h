@@ -493,6 +493,12 @@
 #define CONFIG_USB_MAX_CONTROLLER_COUNT	2 /* Enabled USB controller number */
 #endif
 
+#undef CONFIG_IPADDR
+#define CONFIG_IPADDR			192.168.11.10
+#define CONFIG_NETMASK			255.255.255.0
+#undef CONFIG_SERVERIP
+#define CONFIG_SERVERIP			192.168.11.1
+
 /*#define CONFIG_SPLASH_SCREEN*/
 /*#define CONFIG_MXC_EPDC*/
 
