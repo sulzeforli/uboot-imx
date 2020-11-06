@@ -627,6 +627,7 @@ dtb-y += \
 	imx6dl-arm2.dtb \
 	imx6dl-wandboard-revb1.dtb \
 	imx6dlea-com-kit.dtb \
+	mx6dsysd.dtb \
 
 endif
 
